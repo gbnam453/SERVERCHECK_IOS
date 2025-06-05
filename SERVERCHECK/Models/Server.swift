@@ -2,47 +2,39 @@
 
 import Foundation
 
-enum CheckType: String, CaseIterable, Codable, Identifiable {
-    case ping = "Ping"
-    case tcp  = "TCP"
-    case http = "HTTP"
-    var id: String { rawValue }
-}
-
-enum ServerStatus: String, Codable {
-    case checking, up, down
-}
-
-struct Server: Identifiable, Codable {
+struct Server: Identifiable, Codable, Equatable {
     let id: UUID
     var name: String
-    var type: CheckType
     var host: String
     var port: UInt16?
-    var status: ServerStatus
-    var responseTime: Double?
-    var responseError: String?
-    var responseStatusCode: Int?
+    var type: CheckType
+
+    // Health check 상태를 저장할 프로퍼티들
+    enum Status: String, Codable {
+        case up, down, unknown
+    }
+    var status: Status = .unknown
+
+    /// 마지막으로 응답을 받은 시각(ms)
+    var responseTime: Double? = nil
+
+    /// Ping/TCP/HTTP 에러 메시지 (예: 네트워크 오류)
+    var responseError: String? = nil
+
+    /// HTTP 상태 코드(404, 500 등)가 있는 경우 해당 값
+    var responseStatusCode: Int? = nil
 
     init(
-        id: UUID = .init(),
+        id: UUID = UUID(),
         name: String,
-        type: CheckType = .ping,
         host: String,
-        port: UInt16? = nil,
-        status: ServerStatus = .checking,
-        responseTime: Double? = nil,
-        responseError: String? = nil,
-        responseStatusCode: Int? = nil
+        port: UInt16?,
+        type: CheckType
     ) {
         self.id = id
         self.name = name
-        self.type = type
         self.host = host
         self.port = port
-        self.status = status
-        self.responseTime = responseTime
-        self.responseError = responseError
-        self.responseStatusCode = responseStatusCode
+        self.type = type
     }
 }
